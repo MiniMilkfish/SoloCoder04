@@ -3,7 +3,8 @@
 // @namespace    http://tampermonkey.net/
 // @version      2.1.0
 // @description  专业网页文本样式美化工具，基于专业排版规则，提供多级标题、行宽控制、段间距、统一背景色、护眼墨绿色主题、亮暗模式等功能
-// @author       WebTextStyler
+// @author       liuzhx
+// @homepageURL  https://github.com/MiniMilkfish/SoloCoder04/tree/main/001-WebTextStyler
 // @match        *://*/*
 // @grant        GM_addStyle
 // @grant        GM_registerMenuCommand
@@ -14,6 +15,12 @@
 
 (function() {
     'use strict';
+
+    const SCRIPT_CREATED = '2026-04-26';
+    const PROJECT_URL = 'https://github.com/MiniMilkfish/SoloCoder04/tree/main/001-WebTextStyler';
+    const AUTHOR = 'liuzhx';
+
+    console.log(`[Web Text Styler] v2.1.0 | Author: ${AUTHOR} | Created: ${SCRIPT_CREATED} | Project: ${PROJECT_URL}`);
 
     const defaultConfig = {
         fontSize: 22,
@@ -690,7 +697,7 @@
             config.enableCustomBg = e.target.checked;
             applyTextStyles();
             if (config.enableCustomBg) {
-                applyInlineStyles();
+                overrideInlineBackgrounds();
             }
             saveConfig();
         });
@@ -706,6 +713,9 @@
         bgColorInput.addEventListener('change', (e) => {
             config.bgColor = e.target.value;
             applyTextStyles();
+            if (!config.darkMode) {
+                overrideInlineBackgrounds();
+            }
             saveConfig();
         });
 
@@ -713,6 +723,9 @@
         contentBgColorInput.addEventListener('change', (e) => {
             config.contentBgColor = e.target.value;
             applyTextStyles();
+            if (!config.darkMode) {
+                overrideInlineBackgrounds();
+            }
             saveConfig();
         });
 
@@ -734,6 +747,7 @@
         darkModeCheckbox.addEventListener('change', (e) => {
             config.darkMode = e.target.checked;
             applyTextStyles();
+            overrideInlineBackgrounds();
             saveConfig();
         });
 
@@ -751,6 +765,7 @@
             config.darkBgColor = e.target.value;
             if (config.darkMode) {
                 applyTextStyles();
+                overrideInlineBackgrounds();
             }
             saveConfig();
         });
@@ -760,6 +775,7 @@
             config.darkContentBgColor = e.target.value;
             if (config.darkMode) {
                 applyTextStyles();
+                overrideInlineBackgrounds();
             }
             saveConfig();
         });
@@ -1285,187 +1301,99 @@
         document.body.appendChild(btn);
     }
 
-    function applyInlineStyles() {
+    function overrideInlineBackgrounds() {
         if (!config.enableCustomBg) return;
 
-        const textColor = config.darkMode ? config.darkTextColor : config.textColor;
         const bgColor = config.darkMode ? config.darkBgColor : config.bgColor;
         const contentBgColor = config.darkMode ? config.darkContentBgColor : config.contentBgColor;
-        const linkColor = config.darkMode ? config.darkLinkColor : config.linkColor;
 
-        function shouldModifyElement(element) {
+        function isOurElement(element) {
             if (!element) return false;
-            if (element.id && (element.id.includes('wts-') || element.id.startsWith('wts-'))) return false;
-            if (element.className && typeof element.className === 'string' && element.className.includes('wts-')) return false;
-
-            const parentPanel = element.closest && element.closest('#web-text-styler-panel');
-            const parentFloatBtn = element.closest && element.closest('#wts-float-btn');
-            const parentIndicator = element.closest && element.closest('#wts-highlight-indicator');
-
-            if (parentPanel || parentFloatBtn || parentIndicator) return false;
-
-            return true;
+            if (element.id && (element.id.includes('wts-') || element.id.startsWith('wts-'))) return true;
+            if (element.className && typeof element.className === 'string' && element.className.includes('wts-')) return true;
+            if (element.closest && element.closest('#web-text-styler-panel')) return true;
+            if (element.closest && element.closest('#wts-float-btn')) return true;
+            if (element.closest && element.closest('#wts-highlight-indicator')) return true;
+            return false;
         }
 
-        function applyToElement(element) {
-            if (!shouldModifyElement(element)) return;
+        function hasInlineBackground(element) {
+            if (!element || !element.style) return false;
+            const inlineBg = element.style.backgroundColor;
+            return inlineBg && inlineBg !== '' && inlineBg !== 'transparent' && inlineBg !== 'initial' && inlineBg !== 'inherit';
+        }
 
-            const tagName = element.tagName ? element.tagName.toLowerCase() : '';
-            const classList = element.className ? (typeof element.className === 'string' ? element.className : '') : '';
-            const id = element.id || '';
+        function checkAndOverride(element) {
+            if (!element || isOurElement(element)) return;
 
-            const isBackgroundElement =
-                tagName === 'html' ||
-                tagName === 'body' ||
-                id.includes('container') ||
-                id.includes('wrapper') ||
-                id.includes('page') ||
-                id.includes('site') ||
-                id.includes('body') ||
-                id.includes('app') ||
-                id.includes('root') ||
-                classList.includes('container') ||
-                classList.includes('wrapper') ||
-                classList.includes('page') ||
-                classList.includes('site') ||
-                classList.includes('body-wrapper') ||
-                classList.includes('app') ||
-                classList.includes('root') ||
-                classList.includes('mt-entry');
+            if (hasInlineBackground(element)) {
+                try {
+                    const tagName = element.tagName ? element.tagName.toLowerCase() : '';
+                    const id = element.id || '';
+                    const classList = element.className ? (typeof element.className === 'string' ? element.className : '') : '';
 
-            const isContentElement =
-                tagName === 'main' ||
-                tagName === 'article' ||
-                tagName === 'section' ||
-                tagName === 'header' ||
-                tagName === 'footer' ||
-                tagName === 'nav' ||
-                tagName === 'aside' ||
-                id.includes('content') ||
-                id.includes('article') ||
-                id.includes('post') ||
-                id.includes('entry') ||
-                id.includes('body') ||
-                id.includes('main') ||
-                id.includes('header') ||
-                id.includes('footer') ||
-                classList.includes('content') ||
-                classList.includes('article') ||
-                classList.includes('post') ||
-                classList.includes('entry') ||
-                classList.includes('body') ||
-                classList.includes('main') ||
-                classList.includes('card') ||
-                classList.includes('panel') ||
-                classList.includes('box') ||
-                classList.includes('widget');
+                    const isMainBg =
+                        tagName === 'html' ||
+                        tagName === 'body' ||
+                        id === 'page' || id === 'site' || id === 'root' || id === 'app' ||
+                        id === 'wrapper' || id === 'page-wrapper' || id === 'site-wrapper' ||
+                        classList.includes('page-wrapper') ||
+                        classList.includes('site-wrapper') ||
+                        classList.includes('body-wrapper');
 
-            const isTextElement =
-                tagName === 'p' ||
-                tagName === 'span' ||
-                tagName === 'div' ||
-                tagName === 'li' ||
-                tagName === 'td' ||
-                tagName === 'th' ||
-                tagName === 'h1' ||
-                tagName === 'h2' ||
-                tagName === 'h3' ||
-                tagName === 'h4' ||
-                tagName === 'h5' ||
-                tagName === 'h6' ||
-                tagName === 'blockquote' ||
-                tagName === 'pre' ||
-                tagName === 'code' ||
-                tagName === 'label' ||
-                tagName === 'legend' ||
-                tagName === 'caption' ||
-                tagName === 'small' ||
-                tagName === 'em' ||
-                tagName === 'strong' ||
-                tagName === 'b' ||
-                tagName === 'i';
+                    const isContentBg =
+                        tagName === 'main' ||
+                        tagName === 'article' ||
+                        tagName === 'section' ||
+                        tagName === 'header' ||
+                        tagName === 'footer' ||
+                        tagName === 'nav' ||
+                        tagName === 'aside' ||
+                        id.includes('container') ||
+                        id.includes('content') ||
+                        id.includes('article') ||
+                        id.includes('post') ||
+                        id.includes('entry') ||
+                        classList.includes('container') ||
+                        classList.includes('content') ||
+                        classList.includes('article') ||
+                        classList.includes('post') ||
+                        classList.includes('entry');
 
-            const isLinkElement =
-                tagName === 'a';
-
-            try {
-                if (isBackgroundElement) {
-                    element.style.setProperty('background-color', bgColor, 'important');
-                }
-
-                if (isContentElement) {
-                    element.style.setProperty('background-color', contentBgColor, 'important');
-                }
-
-                if (isTextElement) {
-                    element.style.setProperty('color', textColor, 'important');
-                }
-
-                if (isLinkElement) {
-                    element.style.setProperty('color', linkColor, 'important');
-                }
-
-                if (tagName === 'html' || tagName === 'body') {
-                    element.style.setProperty('background-color', bgColor, 'important');
-                }
-            } catch (e) {
+                    if (isMainBg) {
+                        element.style.setProperty('background-color', bgColor, 'important');
+                    } else if (isContentBg) {
+                        element.style.setProperty('background-color', contentBgColor, 'important');
+                    } else {
+                        element.style.setProperty('background-color', contentBgColor, 'important');
+                    }
+                } catch (e) {}
             }
-        }
-
-        function walkDOM(element) {
-            if (!element) return;
-
-            applyToElement(element);
 
             let child = element.firstChild;
             while (child) {
                 if (child.nodeType === Node.ELEMENT_NODE) {
-                    walkDOM(child);
+                    checkAndOverride(child);
                 }
                 child = child.nextSibling;
             }
         }
 
-        walkDOM(document.documentElement);
-    }
-
-    let styleObserver = null;
-
-    function startStyleObserver() {
-        if (styleObserver) {
-            styleObserver.disconnect();
+        if (document.documentElement) {
+            try {
+                document.documentElement.style.setProperty('background-color', bgColor, 'important');
+            } catch (e) {}
         }
 
-        styleObserver = new MutationObserver((mutations) => {
-            let shouldReapply = false;
+        if (document.body) {
+            try {
+                document.body.style.setProperty('background-color', bgColor, 'important');
+            } catch (e) {}
+        }
 
-            mutations.forEach((mutation) => {
-                if (mutation.type === 'attributes') {
-                    if (mutation.attributeName === 'style' ||
-                        mutation.attributeName === 'class' ||
-                        mutation.attributeName === 'id') {
-                        shouldReapply = true;
-                    }
-                }
-
-                if (mutation.type === 'childList') {
-                    shouldReapply = true;
-                }
-            });
-
-            if (shouldReapply && config.enableCustomBg) {
-                setTimeout(() => {
-                    applyInlineStyles();
-                }, 50);
-            }
-        });
-
-        styleObserver.observe(document.documentElement, {
-            attributes: true,
-            childList: true,
-            subtree: true,
-            attributeFilter: ['style', 'class', 'id']
-        });
+        if (document.documentElement) {
+            checkAndOverride(document.documentElement);
+        }
     }
 
     function init() {
@@ -1474,6 +1402,7 @@
         createFloatButton();
         applyTextStyles();
         applySimplifyPage();
+        overrideInlineBackgrounds();
 
         GM_registerMenuCommand('打开/关闭控制面板', () => {
             toggleControlPanel();
@@ -1486,6 +1415,7 @@
         GM_registerMenuCommand('切换暗色模式', () => {
             config.darkMode = !config.darkMode;
             applyTextStyles();
+            overrideInlineBackgrounds();
             saveConfig();
             updatePanelFromConfig();
         });
@@ -1496,6 +1426,7 @@
                 updatePanelFromConfig();
                 applyTextStyles();
                 applySimplifyPage();
+                overrideInlineBackgrounds();
             }
         });
     }
