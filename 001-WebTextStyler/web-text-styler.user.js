@@ -43,10 +43,14 @@
         highlightOpacity: 0.8,
 
         darkMode: false,
-        darkTextColor: '#f0f0f0',
-        darkBgColor: '#121212',
-        darkContentBgColor: '#1e1e1e',
-        darkLinkColor: '#64b5f6',
+        darkTextColor: '#f5f5dc',
+        darkBgColor: '#1a1a2e',
+        darkContentBgColor: '#16213e',
+        darkLinkColor: '#87ceeb',
+
+        darkTextColorAlt: '#fffacd',
+        darkBgColorAlt: '#2d2d2d',
+        darkContentBgColorAlt: '#3d3d3d',
 
         linkColor: '#8ad0b5',
         linkHoverColor: '#a5e0cb',
@@ -685,6 +689,9 @@
         enableCustomBgCheckbox.addEventListener('change', (e) => {
             config.enableCustomBg = e.target.checked;
             applyTextStyles();
+            if (config.enableCustomBg) {
+                applyInlineStyles();
+            }
             saveConfig();
         });
 
@@ -692,6 +699,9 @@
         textColorInput.addEventListener('change', (e) => {
             config.textColor = e.target.value;
             applyTextStyles();
+            if (!config.darkMode) {
+                applyInlineStyles();
+            }
             saveConfig();
         });
 
@@ -699,6 +709,9 @@
         bgColorInput.addEventListener('change', (e) => {
             config.bgColor = e.target.value;
             applyTextStyles();
+            if (!config.darkMode) {
+                applyInlineStyles();
+            }
             saveConfig();
         });
 
@@ -706,6 +719,9 @@
         contentBgColorInput.addEventListener('change', (e) => {
             config.contentBgColor = e.target.value;
             applyTextStyles();
+            if (!config.darkMode) {
+                applyInlineStyles();
+            }
             saveConfig();
         });
 
@@ -713,6 +729,9 @@
         linkColorInput.addEventListener('change', (e) => {
             config.linkColor = e.target.value;
             applyTextStyles();
+            if (!config.darkMode) {
+                applyInlineStyles();
+            }
             saveConfig();
         });
 
@@ -727,6 +746,7 @@
         darkModeCheckbox.addEventListener('change', (e) => {
             config.darkMode = e.target.checked;
             applyTextStyles();
+            applyInlineStyles();
             saveConfig();
         });
 
@@ -735,6 +755,7 @@
             config.darkTextColor = e.target.value;
             if (config.darkMode) {
                 applyTextStyles();
+                applyInlineStyles();
             }
             saveConfig();
         });
@@ -744,6 +765,7 @@
             config.darkBgColor = e.target.value;
             if (config.darkMode) {
                 applyTextStyles();
+                applyInlineStyles();
             }
             saveConfig();
         });
@@ -753,6 +775,7 @@
             config.darkContentBgColor = e.target.value;
             if (config.darkMode) {
                 applyTextStyles();
+                applyInlineStyles();
             }
             saveConfig();
         });
@@ -762,6 +785,7 @@
             config.darkLinkColor = e.target.value;
             if (config.darkMode) {
                 applyTextStyles();
+                applyInlineStyles();
             }
             saveConfig();
         });
@@ -1312,12 +1336,197 @@
         document.body.appendChild(btn);
     }
 
+    function applyInlineStyles() {
+        if (!config.enableCustomBg) return;
+
+        const textColor = config.darkMode ? config.darkTextColor : config.textColor;
+        const bgColor = config.darkMode ? config.darkBgColor : config.bgColor;
+        const contentBgColor = config.darkMode ? config.darkContentBgColor : config.contentBgColor;
+        const linkColor = config.darkMode ? config.darkLinkColor : config.linkColor;
+
+        function shouldModifyElement(element) {
+            if (!element) return false;
+            if (element.id && (element.id.includes('wts-') || element.id.startsWith('wts-'))) return false;
+            if (element.className && typeof element.className === 'string' && element.className.includes('wts-')) return false;
+
+            const parentPanel = element.closest && element.closest('#web-text-styler-panel');
+            const parentFloatBtn = element.closest && element.closest('#wts-float-btn');
+            const parentIndicator = element.closest && element.closest('#wts-highlight-indicator');
+
+            if (parentPanel || parentFloatBtn || parentIndicator) return false;
+
+            return true;
+        }
+
+        function applyToElement(element) {
+            if (!shouldModifyElement(element)) return;
+
+            const tagName = element.tagName ? element.tagName.toLowerCase() : '';
+            const classList = element.className ? (typeof element.className === 'string' ? element.className : '') : '';
+            const id = element.id || '';
+
+            const isBackgroundElement =
+                tagName === 'html' ||
+                tagName === 'body' ||
+                id.includes('container') ||
+                id.includes('wrapper') ||
+                id.includes('page') ||
+                id.includes('site') ||
+                id.includes('body') ||
+                id.includes('app') ||
+                id.includes('root') ||
+                classList.includes('container') ||
+                classList.includes('wrapper') ||
+                classList.includes('page') ||
+                classList.includes('site') ||
+                classList.includes('body-wrapper') ||
+                classList.includes('app') ||
+                classList.includes('root') ||
+                classList.includes('mt-entry');
+
+            const isContentElement =
+                tagName === 'main' ||
+                tagName === 'article' ||
+                tagName === 'section' ||
+                tagName === 'header' ||
+                tagName === 'footer' ||
+                tagName === 'nav' ||
+                tagName === 'aside' ||
+                id.includes('content') ||
+                id.includes('article') ||
+                id.includes('post') ||
+                id.includes('entry') ||
+                id.includes('body') ||
+                id.includes('main') ||
+                id.includes('header') ||
+                id.includes('footer') ||
+                classList.includes('content') ||
+                classList.includes('article') ||
+                classList.includes('post') ||
+                classList.includes('entry') ||
+                classList.includes('body') ||
+                classList.includes('main') ||
+                classList.includes('card') ||
+                classList.includes('panel') ||
+                classList.includes('box') ||
+                classList.includes('widget');
+
+            const isTextElement =
+                tagName === 'p' ||
+                tagName === 'span' ||
+                tagName === 'div' ||
+                tagName === 'li' ||
+                tagName === 'td' ||
+                tagName === 'th' ||
+                tagName === 'h1' ||
+                tagName === 'h2' ||
+                tagName === 'h3' ||
+                tagName === 'h4' ||
+                tagName === 'h5' ||
+                tagName === 'h6' ||
+                tagName === 'blockquote' ||
+                tagName === 'pre' ||
+                tagName === 'code' ||
+                tagName === 'label' ||
+                tagName === 'legend' ||
+                tagName === 'caption' ||
+                tagName === 'small' ||
+                tagName === 'em' ||
+                tagName === 'strong' ||
+                tagName === 'b' ||
+                tagName === 'i';
+
+            const isLinkElement =
+                tagName === 'a';
+
+            try {
+                if (isBackgroundElement) {
+                    element.style.setProperty('background-color', bgColor, 'important');
+                }
+
+                if (isContentElement) {
+                    element.style.setProperty('background-color', contentBgColor, 'important');
+                }
+
+                if (isTextElement) {
+                    element.style.setProperty('color', textColor, 'important');
+                }
+
+                if (isLinkElement) {
+                    element.style.setProperty('color', linkColor, 'important');
+                }
+
+                if (tagName === 'html' || tagName === 'body') {
+                    element.style.setProperty('background-color', bgColor, 'important');
+                }
+            } catch (e) {
+            }
+        }
+
+        function walkDOM(element) {
+            if (!element) return;
+
+            applyToElement(element);
+
+            let child = element.firstChild;
+            while (child) {
+                if (child.nodeType === Node.ELEMENT_NODE) {
+                    walkDOM(child);
+                }
+                child = child.nextSibling;
+            }
+        }
+
+        walkDOM(document.documentElement);
+    }
+
+    let styleObserver = null;
+
+    function startStyleObserver() {
+        if (styleObserver) {
+            styleObserver.disconnect();
+        }
+
+        styleObserver = new MutationObserver((mutations) => {
+            let shouldReapply = false;
+
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'attributes') {
+                    if (mutation.attributeName === 'style' ||
+                        mutation.attributeName === 'class' ||
+                        mutation.attributeName === 'id') {
+                        shouldReapply = true;
+                    }
+                }
+
+                if (mutation.type === 'childList') {
+                    shouldReapply = true;
+                }
+            });
+
+            if (shouldReapply && config.enableCustomBg) {
+                setTimeout(() => {
+                    applyInlineStyles();
+                }, 50);
+            }
+        });
+
+        styleObserver.observe(document.documentElement, {
+            attributes: true,
+            childList: true,
+            subtree: true,
+            attributeFilter: ['style', 'class', 'id']
+        });
+    }
+
     function init() {
         loadConfig();
         createControlPanel();
         createFloatButton();
         applyTextStyles();
         applySimplifyPage();
+        applyInlineStyles();
+        startStyleObserver();
 
         GM_registerMenuCommand('打开/关闭控制面板', () => {
             toggleControlPanel();
@@ -1330,6 +1539,7 @@
         GM_registerMenuCommand('切换暗色模式', () => {
             config.darkMode = !config.darkMode;
             applyTextStyles();
+            applyInlineStyles();
             saveConfig();
             updatePanelFromConfig();
         });
@@ -1340,6 +1550,7 @@
                 updatePanelFromConfig();
                 applyTextStyles();
                 applySimplifyPage();
+                applyInlineStyles();
             }
         });
     }
