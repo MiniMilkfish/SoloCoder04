@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Web Text Styler
 // @namespace    http://tampermonkey.net/
-// @version      2.0.0
-// @description  专业网页文本样式美化工具，基于专业排版规则，提供多级标题、行宽控制、段间距、亮暗模式等功能
+// @version      2.1.0
+// @description  专业网页文本样式美化工具，基于专业排版规则，提供多级标题、行宽控制、段间距、统一背景色、护眼墨绿色主题、亮暗模式等功能
 // @author       WebTextStyler
 // @match        *://*/*
 // @grant        GM_addStyle
@@ -15,46 +15,45 @@
 (function() {
     'use strict';
 
-    // 默认配置 - 基于专业排版规则
     const defaultConfig = {
-        // 正文字体设置 (规则1: 22pt ≈ 29px，考虑屏幕显示使用px)
         fontSize: 22,
         lineHeight: 1.5,
         letterSpacing: 0.5,
         wordSpacing: 1,
         fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif',
 
-        // 标题层级配置 (规则2-5)
         h1Scale: 1.9,
         h2Scale: 1.5,
         h3Scale: 1.25,
         h4Scale: 1.15,
         smallScale: 0.75,
 
-        // 段间距设置 (规则6)
         paragraphMargin: 1.0,
         paragraphSpacing: 0.5,
 
-        // 行宽控制 (规则8: 行文本字数)
-        lineWidthMode: 'chars',
-        lineWidthChars: 32,
-        lineWidthPx: 700,
-        maxLineWidthPx: 800,
+        lineWidthMode: 'pixels',
+        lineWidthChars: 45,
+        lineWidthPx: 900,
+        maxLineWidthPx: 1100,
 
-        // 颜色设置
-        textColor: '#333333',
-        bgColor: '#ffffff',
+        textColor: '#e8e8e8',
+        bgColor: '#264d39',
+        contentBgColor: '#2a5540',
         highlightColor: '#fff3cd',
         highlightOpacity: 0.8,
+
         darkMode: false,
-        darkTextColor: '#e0e0e0',
-        darkBgColor: '#1a1a1a',
+        darkTextColor: '#f0f0f0',
+        darkBgColor: '#121212',
+        darkContentBgColor: '#1e1e1e',
+        darkLinkColor: '#64b5f6',
 
-        // 页面简化
+        linkColor: '#8ad0b5',
+        linkHoverColor: '#a5e0cb',
+
         simplifyPage: false,
-
-        // 单位配置
-        usePt: false
+        usePt: false,
+        enableCustomBg: true
     };
 
     let config = Object.assign({}, defaultConfig);
@@ -96,7 +95,6 @@
                 <button class="wts-close-btn">&times;</button>
             </div>
             <div class="wts-content">
-                <!-- 正文字体设置 -->
                 <div class="wts-section">
                     <h4>正文字体</h4>
                     <div class="wts-control">
@@ -123,7 +121,6 @@
                     </div>
                 </div>
 
-                <!-- 标题层级设置 -->
                 <div class="wts-section">
                     <h4>标题层级</h4>
                     <div class="wts-control">
@@ -148,7 +145,6 @@
                     </div>
                 </div>
 
-                <!-- 段落间距设置 -->
                 <div class="wts-section">
                     <h4>段落间距</h4>
                     <div class="wts-control">
@@ -161,7 +157,6 @@
                     </div>
                 </div>
 
-                <!-- 行宽设置 -->
                 <div class="wts-section">
                     <h4>行宽控制</h4>
                     <div class="wts-control">
@@ -183,19 +178,74 @@
                     </div>
                     <div class="wts-control" id="wts-line-width-chars-control">
                         <label for="wts-line-width-chars">每行字符数: <span id="wts-line-width-chars-value">${config.lineWidthChars}</span></label>
-                        <input type="range" id="wts-line-width-chars" min="20" max="60" value="${config.lineWidthChars}" step="1">
+                        <input type="range" id="wts-line-width-chars" min="30" max="70" value="${config.lineWidthChars}" step="1">
                     </div>
-                    <div class="wts-control" id="wts-line-width-px-control" style="display:none;">
+                    <div class="wts-control" id="wts-line-width-px-control">
                         <label for="wts-line-width-px">行宽(px): <span id="wts-line-width-px-value">${config.lineWidthPx}px</span></label>
-                        <input type="range" id="wts-line-width-px" min="400" max="1000" value="${config.lineWidthPx}" step="10">
+                        <input type="range" id="wts-line-width-px" min="600" max="1200" value="${config.lineWidthPx}" step="50">
                     </div>
                     <div class="wts-control">
                         <label for="wts-max-line-width-px">最大行宽: <span id="wts-max-line-width-px-value">${config.maxLineWidthPx}px</span></label>
-                        <input type="range" id="wts-max-line-width-px" min="500" max="1200" value="${config.maxLineWidthPx}" step="50">
+                        <input type="range" id="wts-max-line-width-px" min="700" max="1400" value="${config.maxLineWidthPx}" step="50">
                     </div>
                 </div>
 
-                <!-- 高亮设置 -->
+                <div class="wts-section">
+                    <h4>颜色设置</h4>
+                    <div class="wts-control wts-toggle">
+                        <label>
+                            <input type="checkbox" id="wts-enable-custom-bg" ${config.enableCustomBg ? 'checked' : ''}>
+                            <span>启用自定义背景色</span>
+                        </label>
+                    </div>
+                    <div class="wts-control">
+                        <label for="wts-text-color">文字颜色:</label>
+                        <input type="color" id="wts-text-color" value="${config.textColor}">
+                    </div>
+                    <div class="wts-control">
+                        <label for="wts-bg-color">背景颜色:</label>
+                        <input type="color" id="wts-bg-color" value="${config.bgColor}">
+                    </div>
+                    <div class="wts-control">
+                        <label for="wts-content-bg-color">内容区背景:</label>
+                        <input type="color" id="wts-content-bg-color" value="${config.contentBgColor}">
+                    </div>
+                    <div class="wts-control">
+                        <label for="wts-link-color">链接颜色:</label>
+                        <input type="color" id="wts-link-color" value="${config.linkColor}">
+                    </div>
+                    <div class="wts-control">
+                        <label for="wts-link-hover-color">链接悬停颜色:</label>
+                        <input type="color" id="wts-link-hover-color" value="${config.linkHoverColor}">
+                    </div>
+                </div>
+
+                <div class="wts-section">
+                    <h4>显示模式</h4>
+                    <div class="wts-control wts-toggle">
+                        <label>
+                            <input type="checkbox" id="wts-dark-mode" ${config.darkMode ? 'checked' : ''}>
+                            <span>暗色模式</span>
+                        </label>
+                    </div>
+                    <div class="wts-control">
+                        <label for="wts-dark-text-color">暗色 - 文字颜色:</label>
+                        <input type="color" id="wts-dark-text-color" value="${config.darkTextColor}">
+                    </div>
+                    <div class="wts-control">
+                        <label for="wts-dark-bg-color">暗色 - 背景颜色:</label>
+                        <input type="color" id="wts-dark-bg-color" value="${config.darkBgColor}">
+                    </div>
+                    <div class="wts-control">
+                        <label for="wts-dark-content-bg-color">暗色 - 内容区背景:</label>
+                        <input type="color" id="wts-dark-content-bg-color" value="${config.darkContentBgColor}">
+                    </div>
+                    <div class="wts-control">
+                        <label for="wts-dark-link-color">暗色 - 链接颜色:</label>
+                        <input type="color" id="wts-dark-link-color" value="${config.darkLinkColor}">
+                    </div>
+                </div>
+
                 <div class="wts-section">
                     <h4>高亮设置</h4>
                     <div class="wts-control">
@@ -210,34 +260,6 @@
                     <button id="wts-clear-highlights" class="wts-btn wts-btn-secondary">清除所有高亮</button>
                 </div>
 
-                <!-- 亮暗模式 -->
-                <div class="wts-section">
-                    <h4>显示模式</h4>
-                    <div class="wts-control wts-toggle">
-                        <label>
-                            <input type="checkbox" id="wts-dark-mode" ${config.darkMode ? 'checked' : ''}>
-                            <span>暗色模式</span>
-                        </label>
-                    </div>
-                    <div class="wts-control">
-                        <label for="wts-light-text-color">浅色模式 - 文字颜色:</label>
-                        <input type="color" id="wts-light-text-color" value="${config.textColor}">
-                    </div>
-                    <div class="wts-control">
-                        <label for="wts-light-bg-color">浅色模式 - 背景颜色:</label>
-                        <input type="color" id="wts-light-bg-color" value="${config.bgColor}">
-                    </div>
-                    <div class="wts-control">
-                        <label for="wts-dark-text-color">暗色模式 - 文字颜色:</label>
-                        <input type="color" id="wts-dark-text-color" value="${config.darkTextColor}">
-                    </div>
-                    <div class="wts-control">
-                        <label for="wts-dark-bg-color">暗色模式 - 背景颜色:</label>
-                        <input type="color" id="wts-dark-bg-color" value="${config.darkBgColor}">
-                    </div>
-                </div>
-
-                <!-- 页面简化 -->
                 <div class="wts-section">
                     <h4>页面简化</h4>
                     <div class="wts-control wts-toggle">
@@ -248,7 +270,6 @@
                     </div>
                 </div>
 
-                <!-- 重置按钮 -->
                 <div class="wts-section">
                     <button id="wts-reset-default" class="wts-btn wts-btn-danger">恢复默认设置</button>
                 </div>
@@ -266,7 +287,7 @@
                 position: fixed;
                 top: 20px;
                 right: 20px;
-                width: 340px;
+                width: 360px;
                 max-height: 90vh;
                 background: #fff;
                 border-radius: 8px;
@@ -642,6 +663,91 @@
             saveConfig();
         });
 
+        const enableCustomBgCheckbox = document.getElementById('wts-enable-custom-bg');
+        enableCustomBgCheckbox.addEventListener('change', (e) => {
+            config.enableCustomBg = e.target.checked;
+            applyTextStyles();
+            saveConfig();
+        });
+
+        const textColorInput = document.getElementById('wts-text-color');
+        textColorInput.addEventListener('change', (e) => {
+            config.textColor = e.target.value;
+            applyTextStyles();
+            saveConfig();
+        });
+
+        const bgColorInput = document.getElementById('wts-bg-color');
+        bgColorInput.addEventListener('change', (e) => {
+            config.bgColor = e.target.value;
+            applyTextStyles();
+            saveConfig();
+        });
+
+        const contentBgColorInput = document.getElementById('wts-content-bg-color');
+        contentBgColorInput.addEventListener('change', (e) => {
+            config.contentBgColor = e.target.value;
+            applyTextStyles();
+            saveConfig();
+        });
+
+        const linkColorInput = document.getElementById('wts-link-color');
+        linkColorInput.addEventListener('change', (e) => {
+            config.linkColor = e.target.value;
+            applyTextStyles();
+            saveConfig();
+        });
+
+        const linkHoverColorInput = document.getElementById('wts-link-hover-color');
+        linkHoverColorInput.addEventListener('change', (e) => {
+            config.linkHoverColor = e.target.value;
+            applyTextStyles();
+            saveConfig();
+        });
+
+        const darkModeCheckbox = document.getElementById('wts-dark-mode');
+        darkModeCheckbox.addEventListener('change', (e) => {
+            config.darkMode = e.target.checked;
+            applyTextStyles();
+            saveConfig();
+        });
+
+        const darkTextColorInput = document.getElementById('wts-dark-text-color');
+        darkTextColorInput.addEventListener('change', (e) => {
+            config.darkTextColor = e.target.value;
+            if (config.darkMode) {
+                applyTextStyles();
+            }
+            saveConfig();
+        });
+
+        const darkBgColorInput = document.getElementById('wts-dark-bg-color');
+        darkBgColorInput.addEventListener('change', (e) => {
+            config.darkBgColor = e.target.value;
+            if (config.darkMode) {
+                applyTextStyles();
+            }
+            saveConfig();
+        });
+
+        const darkContentBgColorInput = document.getElementById('wts-dark-content-bg-color');
+        darkContentBgColorInput.addEventListener('change', (e) => {
+            config.darkContentBgColor = e.target.value;
+            if (config.darkMode) {
+                applyTextStyles();
+            }
+            saveConfig();
+        });
+
+        const darkLinkColorInput = document.getElementById('wts-dark-link-color');
+        darkLinkColorInput.addEventListener('change', (e) => {
+            config.darkLinkColor = e.target.value;
+            if (config.darkMode) {
+                applyTextStyles();
+            }
+            saveConfig();
+        });
+
         const highlightColorInput = document.getElementById('wts-highlight-color');
         highlightColorInput.addEventListener('change', (e) => {
             config.highlightColor = e.target.value;
@@ -664,45 +770,6 @@
             clearAllHighlights();
         });
 
-        const darkModeCheckbox = document.getElementById('wts-dark-mode');
-        darkModeCheckbox.addEventListener('change', (e) => {
-            config.darkMode = e.target.checked;
-            applyDarkMode();
-            saveConfig();
-        });
-
-        document.getElementById('wts-light-text-color').addEventListener('change', (e) => {
-            config.textColor = e.target.value;
-            if (!config.darkMode) {
-                applyDarkMode();
-            }
-            saveConfig();
-        });
-
-        document.getElementById('wts-light-bg-color').addEventListener('change', (e) => {
-            config.bgColor = e.target.value;
-            if (!config.darkMode) {
-                applyDarkMode();
-            }
-            saveConfig();
-        });
-
-        document.getElementById('wts-dark-text-color').addEventListener('change', (e) => {
-            config.darkTextColor = e.target.value;
-            if (config.darkMode) {
-                applyDarkMode();
-            }
-            saveConfig();
-        });
-
-        document.getElementById('wts-dark-bg-color').addEventListener('change', (e) => {
-            config.darkBgColor = e.target.value;
-            if (config.darkMode) {
-                applyDarkMode();
-            }
-            saveConfig();
-        });
-
         const simplifyPageCheckbox = document.getElementById('wts-simplify-page');
         simplifyPageCheckbox.addEventListener('change', (e) => {
             config.simplifyPage = e.target.checked;
@@ -714,7 +781,6 @@
             config = Object.assign({}, defaultConfig);
             updatePanelFromConfig();
             applyTextStyles();
-            applyDarkMode();
             applySimplifyPage();
             saveConfig();
         });
@@ -787,16 +853,22 @@
         document.getElementById('wts-max-line-width-px').value = config.maxLineWidthPx;
         document.getElementById('wts-max-line-width-px-value').textContent = `${config.maxLineWidthPx}px`;
 
-        document.getElementById('wts-highlight-color').value = config.highlightColor;
-
-        document.getElementById('wts-highlight-opacity').value = config.highlightOpacity;
-        document.getElementById('wts-highlight-opacity-value').textContent = `${Math.round(config.highlightOpacity * 100)}%`;
+        document.getElementById('wts-enable-custom-bg').checked = config.enableCustomBg;
+        document.getElementById('wts-text-color').value = config.textColor;
+        document.getElementById('wts-bg-color').value = config.bgColor;
+        document.getElementById('wts-content-bg-color').value = config.contentBgColor;
+        document.getElementById('wts-link-color').value = config.linkColor;
+        document.getElementById('wts-link-hover-color').value = config.linkHoverColor;
 
         document.getElementById('wts-dark-mode').checked = config.darkMode;
-        document.getElementById('wts-light-text-color').value = config.textColor;
-        document.getElementById('wts-light-bg-color').value = config.bgColor;
         document.getElementById('wts-dark-text-color').value = config.darkTextColor;
         document.getElementById('wts-dark-bg-color').value = config.darkBgColor;
+        document.getElementById('wts-dark-content-bg-color').value = config.darkContentBgColor;
+        document.getElementById('wts-dark-link-color').value = config.darkLinkColor;
+
+        document.getElementById('wts-highlight-color').value = config.highlightColor;
+        document.getElementById('wts-highlight-opacity').value = config.highlightOpacity;
+        document.getElementById('wts-highlight-opacity-value').textContent = `${Math.round(config.highlightOpacity * 100)}%`;
 
         document.getElementById('wts-simplify-page').checked = config.simplifyPage;
 
@@ -826,11 +898,18 @@
         const fontSizePx = getFontSizePx();
         const lineWidth = calculateLineWidth();
 
+        const textColor = config.darkMode ? config.darkTextColor : config.textColor;
+        const bgColor = config.darkMode ? config.darkBgColor : config.bgColor;
+        const contentBgColor = config.darkMode ? config.darkContentBgColor : config.contentBgColor;
+        const linkColor = config.darkMode ? config.darkLinkColor : config.linkColor;
+        const linkHoverColor = config.linkHoverColor;
+
         const style = document.createElement('style');
         style.id = 'wts-text-styles';
 
         let styleContent = `
-            body, p, li, span, div, article, section, main, aside, aside, td, th {
+            body, p, li, span, div, article, section, main, aside, td, th,
+            .post-body, .article-body, .entry-content, .post-content, .article-content {
                 font-size: ${fontSizePx}px !important;
                 line-height: ${config.lineHeight} !important;
                 letter-spacing: ${config.letterSpacing}px !important;
@@ -880,7 +959,8 @@
             }
 
             small, .small, [class*="small"], [id*="small"],
-            .note, .comment, .caption, figcaption, footer {
+            .note, .comment, .caption, figcaption, footer,
+            .post-meta, .article-meta, .entry-meta {
                 font-size: ${fontSizePx * config.smallScale}px !important;
                 line-height: ${config.lineHeight * 1.1} !important;
             }
@@ -910,7 +990,9 @@
             styleContent += `
                 main, article, .content, .post, .article,
                 .entry-content, .post-content, .article-content,
-                .container, .main-content, #content, #main {
+                .container, .main-content, #content, #main,
+                .post-body, .article-body, .page-content,
+                .single-content, .entry {
                     max-width: ${lineWidth}px !important;
                     margin-left: auto !important;
                     margin-right: auto !important;
@@ -924,94 +1006,65 @@
             `;
         }
 
+        if (config.enableCustomBg) {
+            styleContent += `
+                html, body, #root, #___gatsby,
+                .app, .App, #app, #App,
+                .wrapper, .page-wrapper, .site-wrapper,
+                main, article, section, .content, .post, .article,
+                .entry-content, .post-content, .article-content,
+                .container, .main-content, #content, #main,
+                .post-body, .article-body, .page-content,
+                .single-content, .entry {
+                    color: ${textColor} !important;
+                }
+
+                html, body, #root, #___gatsby,
+                .app, .App, #app, #App,
+                .wrapper, .page-wrapper, .site-wrapper {
+                    background-color: ${bgColor} !important;
+                }
+
+                main, article, section, .content, .post, .article,
+                .entry-content, .post-content, .article-content,
+                .container, .main-content, #content, #main,
+                .post-body, .article-body, .page-content,
+                .single-content, .entry,
+                .card, .panel, .box, .widget,
+                header, footer, nav, aside {
+                    background-color: ${contentBgColor} !important;
+                }
+
+                a, a:link, a:visited {
+                    color: ${linkColor} !important;
+                }
+
+                a:hover, a:focus, a:active {
+                    color: ${linkHoverColor} !important;
+                }
+
+                h1, h2, h3, h4, h5, h6,
+                .title, .heading, .header {
+                    color: ${textColor} !important;
+                }
+
+                span, em, strong, b, i,
+                .text, .content-text {
+                    color: ${textColor} !important;
+                }
+
+                th, td, caption {
+                    color: ${textColor} !important;
+                }
+
+                label, legend, fieldset {
+                    color: ${textColor} !important;
+                }
+            `;
+        }
+
         style.textContent = styleContent;
         document.head.appendChild(style);
-    }
-
-    function applyDarkMode() {
-        const oldStyle = document.getElementById('wts-dark-mode-styles');
-        if (oldStyle) {
-            oldStyle.remove();
-        }
-
-        if (config.darkMode) {
-            const style = document.createElement('style');
-            style.id = 'wts-dark-mode-styles';
-            style.textContent = `
-                html, body, #root, .container, .main, .content, article, section,
-                main, .entry-content, .post-content, .article-content {
-                    background-color: ${config.darkBgColor} !important;
-                    color: ${config.darkTextColor} !important;
-                }
-
-                a {
-                    color: #64b5f6 !important;
-                }
-
-                a:hover {
-                    color: #90caf9 !important;
-                }
-
-                pre, code, .code, .code-block {
-                    background-color: #2d2d2d !important;
-                    color: #f8f8f2 !important;
-                }
-
-                div, article, section, header, footer, nav, aside {
-                    border-color: #444 !important;
-                }
-
-                input, textarea, select {
-                    background-color: #333 !important;
-                    color: ${config.darkTextColor} !important;
-                    border-color: #555 !important;
-                }
-
-                button:not(#wts-float-btn):not(.wts-btn) {
-                    background-color: #444 !important;
-                    color: ${config.darkTextColor} !important;
-                    border-color: #555 !important;
-                }
-
-                hr {
-                    border-color: #444 !important;
-                    background-color: #444 !important;
-                }
-
-                table {
-                    border-color: #444 !important;
-                }
-
-                th, td {
-                    border-color: #444 !important;
-                }
-
-                blockquote {
-                    border-left-color: #555 !important;
-                }
-
-                #web-text-styler-panel, #wts-float-btn, #wts-highlight-indicator {
-                    background-color: #fff !important;
-                    color: #333 !important;
-                }
-            `;
-            document.head.appendChild(style);
-        } else {
-            const style = document.createElement('style');
-            style.id = 'wts-dark-mode-styles';
-            style.textContent = `
-                html, body, #root, .container, .main, .content, article, section {
-                    background-color: ${config.bgColor} !important;
-                    color: ${config.textColor} !important;
-                }
-
-                #web-text-styler-panel, #wts-float-btn, #wts-highlight-indicator {
-                    background-color: #fff !important;
-                    color: #333 !important;
-                }
-            `;
-            document.head.appendChild(style);
-        }
     }
 
     function applySimplifyPage() {
@@ -1038,7 +1091,10 @@
                 [class*="cookie"], [id*="cookie"],
                 [class*="consent"], [id*="consent"],
                 [class*="sponsored"], [id*="sponsored"],
-                [class*="promo"], [id*="promo"] {
+                [class*="promo"], [id*="promo"],
+                [class*="related"], [id*="related"],
+                [class*="recommended"], [id*="recommended"],
+                [class*="trending"], [id*="trending"] {
                     display: none !important;
                 }
 
@@ -1228,7 +1284,6 @@
         createControlPanel();
         createFloatButton();
         applyTextStyles();
-        applyDarkMode();
         applySimplifyPage();
 
         GM_registerMenuCommand('打开/关闭控制面板', () => {
@@ -1241,7 +1296,7 @@
 
         GM_registerMenuCommand('切换暗色模式', () => {
             config.darkMode = !config.darkMode;
-            applyDarkMode();
+            applyTextStyles();
             saveConfig();
             updatePanelFromConfig();
         });
@@ -1251,7 +1306,6 @@
                 config = Object.assign({}, defaultConfig, JSON.parse(newValue));
                 updatePanelFromConfig();
                 applyTextStyles();
-                applyDarkMode();
                 applySimplifyPage();
             }
         });
