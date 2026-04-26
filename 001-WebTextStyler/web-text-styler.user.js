@@ -289,13 +289,13 @@
                 right: 20px;
                 width: 360px;
                 max-height: 90vh;
-                background: #fff;
+                background: #ffffff !important;
                 border-radius: 8px;
                 box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
                 z-index: 999999;
                 font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
                 font-size: 14px;
-                color: #333;
+                color: #333333 !important;
                 overflow-y: auto;
                 transition: all 0.3s ease;
             }
@@ -310,7 +310,7 @@
                 align-items: center;
                 padding: 12px 16px;
                 border-bottom: 1px solid #e0e0e0;
-                background: #f8f9fa;
+                background: #f8f9fa !important;
                 border-radius: 8px 8px 0 0;
             }
 
@@ -318,6 +318,7 @@
                 margin: 0;
                 font-size: 16px;
                 font-weight: 600;
+                color: #333333 !important;
             }
 
             #web-text-styler-panel .wts-close-btn {
@@ -325,17 +326,18 @@
                 border: none;
                 font-size: 24px;
                 cursor: pointer;
-                color: #666;
+                color: #666666 !important;
                 padding: 0;
                 line-height: 1;
             }
 
             #web-text-styler-panel .wts-close-btn:hover {
-                color: #333;
+                color: #333333 !important;
             }
 
             #web-text-styler-panel .wts-content {
                 padding: 16px;
+                background: #ffffff !important;
             }
 
             #web-text-styler-panel .wts-section {
@@ -350,7 +352,7 @@
                 margin: 0 0 12px 0;
                 font-size: 14px;
                 font-weight: 600;
-                color: #444;
+                color: #444444 !important;
                 padding-bottom: 8px;
                 border-bottom: 1px solid #eee;
             }
@@ -367,14 +369,14 @@
                 display: block;
                 margin-bottom: 6px;
                 font-size: 13px;
-                color: #555;
+                color: #555555 !important;
             }
 
             #web-text-styler-panel .wts-control input[type="range"] {
                 width: 100%;
                 height: 4px;
                 border-radius: 2px;
-                background: #e0e0e0;
+                background: #e0e0e0 !important;
                 outline: none;
                 -webkit-appearance: none;
             }
@@ -385,7 +387,7 @@
                 width: 16px;
                 height: 16px;
                 border-radius: 50%;
-                background: #4a90d9;
+                background: #4a90d9 !important;
                 cursor: pointer;
             }
 
@@ -393,7 +395,7 @@
                 width: 16px;
                 height: 16px;
                 border-radius: 50%;
-                background: #4a90d9;
+                background: #4a90d9 !important;
                 cursor: pointer;
                 border: none;
             }
@@ -418,17 +420,22 @@
                 align-items: center;
                 cursor: pointer;
                 font-size: 13px;
+                color: #555555 !important;
             }
 
             #web-text-styler-panel .wts-radio input {
                 margin-right: 4px;
             }
 
+            #web-text-styler-panel .wts-radio span {
+                color: #555555 !important;
+            }
+
             #web-text-styler-panel .wts-btn {
                 width: 100%;
                 padding: 8px 16px;
-                background: #4a90d9;
-                color: white;
+                background: #4a90d9 !important;
+                color: #ffffff !important;
                 border: none;
                 border-radius: 4px;
                 cursor: pointer;
@@ -438,7 +445,7 @@
             }
 
             #web-text-styler-panel .wts-btn:hover {
-                background: #3a7bc8;
+                background: #3a7bc8 !important;
             }
 
             #web-text-styler-panel .wts-btn:last-child {
@@ -446,19 +453,19 @@
             }
 
             #web-text-styler-panel .wts-btn-secondary {
-                background: #6c757d;
+                background: #6c757d !important;
             }
 
             #web-text-styler-panel .wts-btn-secondary:hover {
-                background: #5a6268;
+                background: #5a6268 !important;
             }
 
             #web-text-styler-panel .wts-btn-danger {
-                background: #dc3545;
+                background: #dc3545 !important;
             }
 
             #web-text-styler-panel .wts-btn-danger:hover {
-                background: #c82333;
+                background: #c82333 !important;
             }
 
             #web-text-styler-panel .wts-toggle label {
@@ -466,6 +473,11 @@
                 align-items: center;
                 cursor: pointer;
                 margin-bottom: 0;
+                color: #555555 !important;
+            }
+
+            #web-text-styler-panel .wts-toggle label span {
+                color: #555555 !important;
             }
 
             #web-text-styler-panel .wts-toggle input[type="checkbox"] {
@@ -476,8 +488,8 @@
                 position: fixed;
                 top: 20px;
                 right: 20px;
-                background: #fff3cd;
-                color: #856404;
+                background: #fff3cd !important;
+                color: #856404 !important;
                 padding: 8px 16px;
                 border-radius: 4px;
                 font-size: 14px;
@@ -491,8 +503,8 @@
                 right: 20px;
                 width: 50px;
                 height: 50px;
-                background: #4a90d9;
-                color: white;
+                background: #4a90d9 !important;
+                color: #ffffff !important;
                 border: none;
                 border-radius: 50%;
                 font-size: 24px;
@@ -506,8 +518,14 @@
             }
 
             #wts-float-btn:hover {
-                background: #3a7bc8;
+                background: #3a7bc8 !important;
                 transform: scale(1.1);
+            }
+
+            #web-text-styler-panel *,
+            #wts-highlight-indicator,
+            #wts-float-btn {
+                box-sizing: border-box;
             }
         `);
     }
@@ -1011,9 +1029,11 @@
                 html, body, #root, #___gatsby,
                 .app, .App, #app, #App,
                 .wrapper, .page-wrapper, .site-wrapper,
+                #wrapper, #page-wrapper, #site-wrapper,
                 main, article, section, .content, .post, .article,
                 .entry-content, .post-content, .article-content,
                 .container, .main-content, #content, #main,
+                #container, #main-content,
                 .post-body, .article-body, .page-content,
                 .single-content, .entry {
                     color: ${textColor} !important;
@@ -1021,17 +1041,30 @@
 
                 html, body, #root, #___gatsby,
                 .app, .App, #app, #App,
-                .wrapper, .page-wrapper, .site-wrapper {
+                .wrapper, .page-wrapper, .site-wrapper,
+                #wrapper, #page-wrapper, #site-wrapper,
+                #page, #site, #body,
+                .page, .site, .body-wrapper,
+                [class*="wrapper"], [id*="wrapper"],
+                [class*="container"], [id*="container"] {
                     background-color: ${bgColor} !important;
                 }
 
                 main, article, section, .content, .post, .article,
                 .entry-content, .post-content, .article-content,
                 .container, .main-content, #content, #main,
+                #container, #main-content,
                 .post-body, .article-body, .page-content,
                 .single-content, .entry,
                 .card, .panel, .box, .widget,
-                header, footer, nav, aside {
+                #card, #panel, #box, #widget,
+                header, footer, nav, aside,
+                #header, #footer, #nav, #aside,
+                [class*="content"], [id*="content"],
+                [class*="article"], [id*="article"],
+                [class*="post"], [id*="post"],
+                [class*="entry"], [id*="entry"],
+                [class*="body"], [id*="body"] {
                     background-color: ${contentBgColor} !important;
                 }
 
