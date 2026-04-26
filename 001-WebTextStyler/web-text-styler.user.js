@@ -699,9 +699,6 @@
         textColorInput.addEventListener('change', (e) => {
             config.textColor = e.target.value;
             applyTextStyles();
-            if (!config.darkMode) {
-                applyInlineStyles();
-            }
             saveConfig();
         });
 
@@ -709,9 +706,6 @@
         bgColorInput.addEventListener('change', (e) => {
             config.bgColor = e.target.value;
             applyTextStyles();
-            if (!config.darkMode) {
-                applyInlineStyles();
-            }
             saveConfig();
         });
 
@@ -719,9 +713,6 @@
         contentBgColorInput.addEventListener('change', (e) => {
             config.contentBgColor = e.target.value;
             applyTextStyles();
-            if (!config.darkMode) {
-                applyInlineStyles();
-            }
             saveConfig();
         });
 
@@ -729,9 +720,6 @@
         linkColorInput.addEventListener('change', (e) => {
             config.linkColor = e.target.value;
             applyTextStyles();
-            if (!config.darkMode) {
-                applyInlineStyles();
-            }
             saveConfig();
         });
 
@@ -746,7 +734,6 @@
         darkModeCheckbox.addEventListener('change', (e) => {
             config.darkMode = e.target.checked;
             applyTextStyles();
-            applyInlineStyles();
             saveConfig();
         });
 
@@ -755,7 +742,6 @@
             config.darkTextColor = e.target.value;
             if (config.darkMode) {
                 applyTextStyles();
-                applyInlineStyles();
             }
             saveConfig();
         });
@@ -765,7 +751,6 @@
             config.darkBgColor = e.target.value;
             if (config.darkMode) {
                 applyTextStyles();
-                applyInlineStyles();
             }
             saveConfig();
         });
@@ -775,7 +760,6 @@
             config.darkContentBgColor = e.target.value;
             if (config.darkMode) {
                 applyTextStyles();
-                applyInlineStyles();
             }
             saveConfig();
         });
@@ -785,7 +769,6 @@
             config.darkLinkColor = e.target.value;
             if (config.darkMode) {
                 applyTextStyles();
-                applyInlineStyles();
             }
             saveConfig();
         });
@@ -1050,45 +1033,29 @@
 
         if (config.enableCustomBg) {
             styleContent += `
-                html, body, #root, #___gatsby,
-                .app, .App, #app, #App,
-                .wrapper, .page-wrapper, .site-wrapper,
-                #wrapper, #page-wrapper, #site-wrapper,
-                main, article, section, .content, .post, .article,
-                .entry-content, .post-content, .article-content,
-                .container, .main-content, #content, #main,
-                #container, #main-content,
-                .post-body, .article-body, .page-content,
-                .single-content, .entry {
+                p, span, li, td, th,
+                h1, h2, h3, h4, h5, h6,
+                blockquote, pre, code,
+                label, legend, caption,
+                small, em, strong, b, i,
+                .title, .heading, .header,
+                .text, .content-text {
                     color: ${textColor} !important;
                 }
 
                 html, body, #root, #___gatsby,
-                .app, .App, #app, #App,
-                .wrapper, .page-wrapper, .site-wrapper,
-                #wrapper, #page-wrapper, #site-wrapper,
-                #page, #site, #body,
-                .page, .site, .body-wrapper,
-                [class*="wrapper"], [id*="wrapper"],
-                [class*="container"], [id*="container"] {
+                #app, #App, #page, #site, #body,
+                .app, .App, .page, .site, .body-wrapper {
                     background-color: ${bgColor} !important;
                 }
 
-                main, article, section, .content, .post, .article,
-                .entry-content, .post-content, .article-content,
-                .container, .main-content, #content, #main,
-                #container, #main-content,
-                .post-body, .article-body, .page-content,
-                .single-content, .entry,
+                main, article, section, header, footer, nav, aside,
+                #content, #main, #container, #article, #post, #entry, #header, #footer,
+                .content, .main-content, .container, .article, .post, .entry, .body,
                 .card, .panel, .box, .widget,
-                #card, #panel, #box, #widget,
-                header, footer, nav, aside,
-                #header, #footer, #nav, #aside,
-                [class*="content"], [id*="content"],
-                [class*="article"], [id*="article"],
-                [class*="post"], [id*="post"],
-                [class*="entry"], [id*="entry"],
-                [class*="body"], [id*="body"] {
+                .post-body, .article-body, .page-content,
+                .entry-content, .post-content, .article-content,
+                .single-content, .main-content {
                     background-color: ${contentBgColor} !important;
                 }
 
@@ -1098,24 +1065,6 @@
 
                 a:hover, a:focus, a:active {
                     color: ${linkHoverColor} !important;
-                }
-
-                h1, h2, h3, h4, h5, h6,
-                .title, .heading, .header {
-                    color: ${textColor} !important;
-                }
-
-                span, em, strong, b, i,
-                .text, .content-text {
-                    color: ${textColor} !important;
-                }
-
-                th, td, caption {
-                    color: ${textColor} !important;
-                }
-
-                label, legend, fieldset {
-                    color: ${textColor} !important;
                 }
             `;
         }
@@ -1525,8 +1474,6 @@
         createFloatButton();
         applyTextStyles();
         applySimplifyPage();
-        applyInlineStyles();
-        startStyleObserver();
 
         GM_registerMenuCommand('打开/关闭控制面板', () => {
             toggleControlPanel();
@@ -1539,7 +1486,6 @@
         GM_registerMenuCommand('切换暗色模式', () => {
             config.darkMode = !config.darkMode;
             applyTextStyles();
-            applyInlineStyles();
             saveConfig();
             updatePanelFromConfig();
         });
@@ -1550,7 +1496,6 @@
                 updatePanelFromConfig();
                 applyTextStyles();
                 applySimplifyPage();
-                applyInlineStyles();
             }
         });
     }
