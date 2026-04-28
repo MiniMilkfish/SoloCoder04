@@ -1,0 +1,17 @@
+{
+  "name": "tank-battle-online",
+  "version": "1.0.0",
+  "description": "FC坦克大战复刻版 - 支持在线组队模式",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": ["tank", "battle", "game", "websocket", "multiplayer"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "ws": "^8.14.2"
+  }
+}
