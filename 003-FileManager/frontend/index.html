@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文件管理系统</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <!-- 登录页面 -->
+    <div id="login-page" class="page">
+      <div class="login-container">
+        <h1>文件管理系统</h1>
+        <form id="login-form">
+          <div class="form-group">
+            <label for="username">用户名</label>
+            <input type="text" id="username" name="username" required autocomplete="username">
+          </div>
+          <div class="form-group">
+            <label for="password">密码</label>
+            <input type="password" id="password" name="password" required autocomplete="current-password">
+          </div>
+          <button type="submit" class="btn btn-primary">登录</button>
+        </form>
+        <div class="login-hint">
+          <p>测试账号：</p>
+          <p>管理员: admin / admin123</p>
+          <p>普通用户: user / user123</p>
+        </div>
+        <div id="login-error" class="error-message hidden"></div>
+      </div>
+    </div>
+    
+    <!-- 主页面 -->
+    <div id="main-page" class="page hidden">
+      <!-- 顶部导航栏 -->
+      <header class="header">
+        <div class="header-left">
+          <h1>文件管理系统</h1>
+        </div>
+        <div class="header-right">
+          <div id="user-info" class="user-info">
+            <span id="user-name"></span>
+            <span id="user-role" class="role-badge"></span>
+          </div>
+          <button id="logout-btn" class="btn btn-secondary">退出</button>
+        </div>
+      </header>
+      
+      <!-- 主内容区 -->
+      <main class="main-content">
+        <!-- 面包屑导航 -->
+        <div id="breadcrumb" class="breadcrumb">
+          <a href="#" data-path="/" class="breadcrumb-item">根目录</a>
+        </div>
+        
+        <!-- 工具栏 -->
+        <div class="toolbar">
+          <div class="toolbar-left">
+            <button id="new-folder-btn" class="btn btn-primary">
+              <span class="icon">📁</span> 新建文件夹
+            </button>
+            <label for="file-upload" class="btn btn-success">
+              <span class="icon">📤</span> 上传文件
+              <input type="file" id="file-upload" multiple hidden>
+            </label>
+            <button id="refresh-btn" class="btn btn-secondary">
+              <span class="icon">🔄</span> 刷新
+            </button>
+          </div>
+          <div class="toolbar-right">
+            <div class="search-box">
+              <input type="text" id="search-input" placeholder="搜索文件...">
+            </div>
+            <select id="filter-select" class="select">
+              <option value="all">全部类型</option>
+              <option value="folder">仅文件夹</option>
+              <option value="image">图片</option>
+              <option value="document">文档</option>
+              <option value="video">视频</option>
+            </select>
+            <select id="sort-select" class="select">
+              <option value="name">按名称</option>
+              <option value="size">按大小</option>
+              <option value="modified">按修改时间</option>
+              <option value="type">按类型</option>
+            </select>
+            <select id="order-select" class="select">
+              <option value="asc">升序</option>
+              <option value="desc">降序</option>
+            </select>
+          </div>
+        </div>
+        
+        <!-- 批量操作工具栏 -->
+        <div id="batch-toolbar" class="batch-toolbar hidden">
+          <div class="batch-info">
+            <span id="selected-count">0</span> 个项目已选择
+          </div>
+          <button id="batch-delete-btn" class="btn btn-danger">
+            <span class="icon">🗑️</span> 批量删除
+          </button>
+          <button id="batch-move-btn" class="btn btn-warning">
+            <span class="icon">📋</span> 批量移动
+          </button>
+          <button id="cancel-select-btn" class="btn btn-secondary">
+            取消选择
+          </button>
+        </div>
+        
+        <!-- 文件列表 -->
+        <div id="file-list" class="file-list">
+          <!-- 文件列表将通过JS动态生成 -->
+        </div>
+        
+        <!-- 空状态 -->
+        <div id="empty-state" class="empty-state hidden">
+          <div class="empty-icon">📂</div>
+          <h3>此文件夹为空</h3>
+          <p>创建新文件夹或上传文件开始使用</p>
+        </div>
+        
+        <!-- 加载状态 -->
+        <div id="loading-state" class="loading-state hidden">
+          <div class="spinner"></div>
+          <p>加载中...</p>
+        </div>
+      </main>
+    </div>
+    
+    <!-- 模态框容器 -->
+    <div id="modal-overlay" class="modal-overlay hidden"></div>
+    
+    <!-- 新建文件夹模态框 -->
+    <div id="new-folder-modal" class="modal hidden">
+      <div class="modal-header">
+        <h3>新建文件夹</h3>
+        <button class="modal-close" data-modal="new-folder-modal">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="folder-name">文件夹名称</label>
+          <input type="text" id="folder-name" placeholder="请输入文件夹名称">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-modal="new-folder-modal">取消</button>
+        <button id="create-folder-btn" class="btn btn-primary">创建</button>
+      </div>
+    </div>
+    
+    <!-- 重命名模态框 -->
+    <div id="rename-modal" class="modal hidden">
+      <div class="modal-header">
+        <h3>重命名</h3>
+        <button class="modal-close" data-modal="rename-modal">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="rename-input">新名称</label>
+          <input type="text" id="rename-input" placeholder="请输入新名称">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-modal="rename-modal">取消</button>
+        <button id="confirm-rename-btn" class="btn btn-primary">确认</button>
+      </div>
+    </div>
+    
+    <!-- 确认删除模态框 -->
+    <div id="delete-modal" class="modal hidden">
+      <div class="modal-header">
+        <h3>确认删除</h3>
+        <button class="modal-close" data-modal="delete-modal">×</button>
+      </div>
+      <div class="modal-body">
+        <p id="delete-message">确定要删除此文件/文件夹吗？此操作不可撤销。</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-modal="delete-modal">取消</button>
+        <button id="confirm-delete-btn" class="btn btn-danger">删除</button>
+      </div>
+    </div>
+    
+    <!-- 移动文件模态框 -->
+    <div id="move-modal" class="modal hidden">
+      <div class="modal-header">
+        <h3>移动到</h3>
+        <button class="modal-close" data-modal="move-modal">×</button>
+      </div>
+      <div class="modal-body">
+        <div id="move-path" class="move-path">
+          <a href="#" data-path="/" class="path-item">根目录</a>
+        </div>
+        <div id="move-folder-list" class="folder-list">
+          <!-- 文件夹列表将通过JS动态生成 -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-modal="move-modal">取消</button>
+        <button id="confirm-move-btn" class="btn btn-primary">移动</button>
+      </div>
+    </div>
+    
+    <!-- 上传进度模态框 -->
+    <div id="upload-progress-modal" class="modal hidden">
+      <div class="modal-header">
+        <h3>上传进度</h3>
+        <button class="modal-close" data-modal="upload-progress-modal">×</button>
+      </div>
+      <div class="modal-body">
+        <div id="upload-progress-list" class="upload-progress-list">
+          <!-- 上传进度项将通过JS动态生成 -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-modal="upload-progress-modal">关闭</button>
+      </div>
+    </div>
+    
+    <!-- 预览模态框 -->
+    <div id="preview-modal" class="modal hidden modal-large">
+      <div class="modal-header">
+        <h3 id="preview-title">文件预览</h3>
+        <button class="modal-close" data-modal="preview-modal">×</button>
+      </div>
+      <div class="modal-body">
+        <div id="preview-content" class="preview-content">
+          <!-- 预览内容将通过JS动态生成 -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="preview-download-btn" class="btn btn-primary">
+          <span class="icon">📥</span> 下载
+        </button>
+        <button class="btn btn-secondary" data-modal="preview-modal">关闭</button>
+      </div>
+    </div>
+    
+    <!-- 文件覆盖确认模态框 -->
+    <div id="overwrite-modal" class="modal hidden">
+      <div class="modal-header">
+        <h3>文件已存在</h3>
+        <button class="modal-close" data-modal="overwrite-modal">×</button>
+      </div>
+      <div class="modal-body">
+        <p>目标位置已存在同名文件，是否覆盖？</p>
+        <div class="overwrite-options">
+          <label class="radio-option">
+            <input type="radio" name="overwrite-action" value="skip" checked>
+            <span>跳过此文件</span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="overwrite-action" value="overwrite">
+            <span>覆盖</span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="overwrite-action" value="rename">
+            <span>自动重命名</span>
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-modal="overwrite-modal">取消</button>
+        <button id="confirm-overwrite-btn" class="btn btn-primary">确认</button>
+      </div>
+    </div>
+    
+    <!-- 提示信息 -->
+    <div id="toast-container" class="toast-container"></div>
+  </div>
+  
+  <script src="config.js"></script>
+  <script src="api.js"></script>
+  <script src="utils.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
