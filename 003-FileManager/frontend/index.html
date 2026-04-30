@@ -44,6 +44,9 @@
             <span id="user-name"></span>
             <span id="user-role" class="role-badge"></span>
           </div>
+          <button id="logs-btn" class="btn btn-info hidden">
+            <span class="icon">📋</span> 操作日志
+          </button>
           <button id="logout-btn" class="btn btn-secondary">退出</button>
         </div>
       </header>
@@ -264,6 +267,47 @@
       <div class="modal-footer">
         <button class="btn btn-secondary" data-modal="overwrite-modal">取消</button>
         <button id="confirm-overwrite-btn" class="btn btn-primary">确认</button>
+      </div>
+    </div>
+    
+    <!-- 操作日志模态框 -->
+    <div id="logs-modal" class="modal hidden modal-large">
+      <div class="modal-header">
+        <h3>操作日志</h3>
+        <button class="modal-close" data-modal="logs-modal">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="logs-toolbar">
+          <div class="logs-filter">
+            <select id="logs-action-filter" class="select">
+              <option value="all">全部操作</option>
+              <option value="list">浏览</option>
+              <option value="create_folder">新建文件夹</option>
+              <option value="upload">上传</option>
+              <option value="download">下载</option>
+              <option value="preview">预览</option>
+              <option value="delete">删除</option>
+              <option value="rename">重命名</option>
+              <option value="move">移动</option>
+            </select>
+          </div>
+          <div class="logs-refresh">
+            <button id="logs-refresh-btn" class="btn btn-secondary">
+              <span class="icon">🔄</span> 刷新
+            </button>
+          </div>
+        </div>
+        <div id="logs-list" class="logs-list">
+          <!-- 日志列表将通过JS动态生成 -->
+        </div>
+        <div class="logs-pagination">
+          <button id="logs-prev-btn" class="btn btn-secondary" disabled>上一页</button>
+          <span id="logs-page-info">第 1 页 / 共 1 页</span>
+          <button id="logs-next-btn" class="btn btn-secondary" disabled>下一页</button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-modal="logs-modal">关闭</button>
       </div>
     </div>
     

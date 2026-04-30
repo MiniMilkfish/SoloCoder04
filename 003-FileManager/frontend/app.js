@@ -15,6 +15,12 @@ class FileManagerApp {
     this.uploadProgressMap = new Map();
     this.previewPath = null;
     
+    this.logsPage = 1;
+    this.logsLimit = 20;
+    this.logsTotal = 0;
+    this.logsActionFilter = 'all';
+    this.currentUser = null;
+    
     this.init();
   }
   
@@ -58,10 +64,18 @@ class FileManagerApp {
   }
   
   setUserInfo(user) {
+    this.currentUser = user;
     document.getElementById('user-name').textContent = user.username;
     const roleBadge = document.getElementById('user-role');
     roleBadge.textContent = user.role === 'admin' ? '管理员' : '用户';
     roleBadge.className = `role-badge ${user.role}`;
+    
+    const logsBtn = document.getElementById('logs-btn');
+    if (user.role === 'admin') {
+      logsBtn.classList.remove('hidden');
+    } else {
+      logsBtn.classList.add('hidden');
+    }
   }
   
   bindEvents() {
@@ -193,6 +207,40 @@ class FileManagerApp {
     document.getElementById('rename-input').addEventListener('keypress', async (e) => {
       if (e.key === 'Enter') {
         await this.renameItem();
+      }
+    });
+    
+    // 日志功能
+    document.getElementById('logs-btn').addEventListener('click', () => {
+      this.logsPage = 1;
+      this.logsActionFilter = 'all';
+      document.getElementById('logs-action-filter').value = 'all';
+      this.loadLogs();
+      Utils.showModal('logs-modal');
+    });
+    
+    document.getElementById('logs-refresh-btn').addEventListener('click', () => {
+      this.loadLogs();
+    });
+    
+    document.getElementById('logs-action-filter').addEventListener('change', (e) => {
+      this.logsActionFilter = e.target.value;
+      this.logsPage = 1;
+      this.loadLogs();
+    });
+    
+    document.getElementById('logs-prev-btn').addEventListener('click', () => {
+      if (this.logsPage > 1) {
+        this.logsPage--;
+        this.loadLogs();
+      }
+    });
+    
+    document.getElementById('logs-next-btn').addEventListener('click', () => {
+      const totalPages = Math.ceil(this.logsTotal / this.logsLimit);
+      if (this.logsPage < totalPages) {
+        this.logsPage++;
+        this.loadLogs();
       }
     });
   }
@@ -996,6 +1044,140 @@ class FileManagerApp {
   hideEmpty() {
     document.getElementById('empty-state').classList.add('hidden');
     document.getElementById('file-list').classList.remove('hidden');
+  }
+  
+  async loadLogs() {
+    const logsList = document.getElementById('logs-list');
+    logsList.innerHTML = '<div class="loading-state"><div class="spinner"></div><p>加载中...</p></div>';
+    
+    try {
+      const result = await API.getLogs(this.logsPage, this.logsLimit);
+      this.logsTotal = result.total;
+      
+      let logs = result.logs;
+      
+      if (this.logsActionFilter !== 'all') {
+        logs = logs.filter(log => log.action === this.logsActionFilter);
+      }
+      
+      this.renderLogs(logs);
+      this.updateLogsPagination();
+      
+    } catch (error) {
+      logsList.innerHTML = `
+        <div class="logs-empty">
+          <div class="icon">❌</div>
+          <p>加载日志失败</p>
+          <p style="font-size: 12px;">${error.message || '未知错误'}</p>
+        </div>
+      `;
+    }
+  }
+  
+  renderLogs(logs) {
+    const logsList = document.getElementById('logs-list');
+    
+    if (!logs || logs.length === 0) {
+      logsList.innerHTML = `
+        <div class="logs-empty">
+          <div class="icon">📋</div>
+          <p>暂无操作日志</p>
+        </div>
+      `;
+      return;
+    }
+    
+    logsList.innerHTML = logs.map(log => `
+      <div class="log-item">
+        <div class="log-icon">${this.getLogIcon(log.action)}</div>
+        <div class="log-content">
+          <span class="log-action ${log.action}">${this.getActionLabel(log.action)}</span>
+          <div class="log-path">${this.escapeHtml(log.path)}</div>
+          <div class="log-meta">
+            <span class="log-user">
+              <span>👤</span>
+              <span>${this.escapeHtml(log.user)}</span>
+              <span class="log-role ${log.role}">${log.role === 'admin' ? '管理员' : '用户'}</span>
+            </span>
+            <span class="log-time">🕐 ${this.formatLogTime(log.timestamp)}</span>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+  
+  updateLogsPagination() {
+    const prevBtn = document.getElementById('logs-prev-btn');
+    const nextBtn = document.getElementById('logs-next-btn');
+    const pageInfo = document.getElementById('logs-page-info');
+    
+    const totalPages = Math.ceil(this.logsTotal / this.logsLimit) || 1;
+    
+    prevBtn.disabled = this.logsPage <= 1;
+    nextBtn.disabled = this.logsPage >= totalPages;
+    
+    pageInfo.textContent = `第 ${this.logsPage} 页 / 共 ${totalPages} 页`;
+  }
+  
+  getLogIcon(action) {
+    const icons = {
+      list: '📂',
+      create_folder: '📁',
+      upload: '📤',
+      download: '📥',
+      preview: '👁️',
+      delete: '🗑️',
+      rename: '✏️',
+      move: '📋'
+    };
+    return icons[action] || '📝';
+  }
+  
+  getActionLabel(action) {
+    const labels = {
+      list: '浏览',
+      create_folder: '新建文件夹',
+      upload: '上传',
+      upload_init: '初始化上传',
+      upload_complete: '完成上传',
+      download: '下载',
+      preview: '预览',
+      delete: '删除',
+      rename: '重命名',
+      move: '移动'
+    };
+    return labels[action] || action;
+  }
+  
+  formatLogTime(timestamp) {
+    if (!timestamp) return '';
+    
+    try {
+      const date = new Date(timestamp);
+      if (isNaN(date.getTime())) return timestamp;
+      
+      const now = new Date();
+      const diffMs = now - date;
+      const diffSec = Math.floor(diffMs / 1000);
+      const diffMin = Math.floor(diffSec / 60);
+      const diffHour = Math.floor(diffMin / 60);
+      const diffDay = Math.floor(diffHour / 24);
+      
+      if (diffSec < 60) return '刚刚';
+      if (diffMin < 60) return `${diffMin} 分钟前`;
+      if (diffHour < 24) return `${diffHour} 小时前`;
+      if (diffDay < 7) return `${diffDay} 天前`;
+      
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      
+      return `${year}-${month}-${day} ${hours}:${minutes}`;
+    } catch (e) {
+      return timestamp;
+    }
   }
 }
 

@@ -998,6 +998,185 @@ body {
   }
 }
 
+.btn-info {
+  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  color: white;
+}
+
+.btn-info:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.4);
+}
+
+.logs-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: #f9f9f9;
+  border-radius: 8px;
+}
+
+.logs-filter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logs-refresh {
+  display: flex;
+  align-items: center;
+}
+
+.logs-list {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+}
+
+.log-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  gap: 12px;
+}
+
+.log-item:last-child {
+  border-bottom: none;
+}
+
+.log-item:hover {
+  background: #f9f9f9;
+}
+
+.log-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.log-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.log-action {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.log-action.list { background: #e6f7ff; color: #1890ff; }
+.log-action.create_folder { background: #f6ffed; color: #52c41a; }
+.log-action.upload { background: #fff7e6; color: #fa8c16; }
+.log-action.download { background: #f0f5ff; color: #722ed1; }
+.log-action.preview { background: #e6fffb; color: #13c2c2; }
+.log-action.delete { background: #fff1f0; color: #ff4d4f; }
+.log-action.rename { background: #fffbe6; color: #faad14; }
+.log-action.move { background: #e6f7ff; color: #1890ff; }
+
+.log-path {
+  font-size: 13px;
+  color: #333;
+  margin-bottom: 4px;
+  word-break: break-all;
+}
+
+.log-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: #999;
+  flex-wrap: wrap;
+}
+
+.log-user {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.log-role {
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 11px;
+}
+
+.log-role.admin { background: #fff7e6; color: #fa8c16; }
+.log-role.user { background: #e6f7ff; color: #1890ff; }
+
+.log-time {
+  color: #666;
+}
+
+.logs-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.logs-pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.logs-page-info {
+  font-size: 14px;
+  color: #666;
+}
+
+.logs-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: #999;
+}
+
+.logs-empty .icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+@media (max-width: 768px) {
+  .logs-toolbar {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+  
+  .logs-filter {
+    justify-content: center;
+  }
+  
+  .logs-refresh {
+    justify-content: center;
+  }
+  
+  .log-item {
+    flex-direction: column;
+  }
+  
+  .log-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  
+  .logs-pagination {
+    flex-wrap: wrap;
+  }
+}
+
 @media (max-width: 480px) {
   .file-list {
     grid-template-columns: repeat(2, 1fr);
