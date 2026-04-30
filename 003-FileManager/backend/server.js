@@ -75,10 +75,33 @@ const adminMiddleware = (req, res, next) => {
 };
 
 const sanitizePath = (userPath) => {
-  const absolutePath = path.resolve(STORAGE_PATH, userPath);
-  if (!absolutePath.startsWith(STORAGE_PATH)) {
+  if (!userPath || userPath === '/' || userPath === '\\') {
+    return STORAGE_PATH;
+  }
+  
+  let cleanedPath = userPath;
+  while (cleanedPath.startsWith('/') || cleanedPath.startsWith('\\')) {
+    cleanedPath = cleanedPath.slice(1);
+  }
+  while (cleanedPath.startsWith('./') || cleanedPath.startsWith('.\\')) {
+    cleanedPath = cleanedPath.slice(2);
+  }
+  
+  const normalizedPath = path.normalize(cleanedPath);
+  if (normalizedPath.includes('..') || normalizedPath === '..') {
     throw new Error('非法路径访问');
   }
+  
+  const absolutePath = path.join(STORAGE_PATH, normalizedPath);
+  
+  const resolvedBase = path.resolve(STORAGE_PATH);
+  const resolvedTarget = path.resolve(absolutePath);
+  
+  if (!resolvedTarget.startsWith(resolvedBase + path.sep) && 
+      resolvedTarget !== resolvedBase) {
+    throw new Error('非法路径访问');
+  }
+  
   return absolutePath;
 };
 

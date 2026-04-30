@@ -575,7 +575,7 @@ class FileManagerApp {
       const mimeType = file.type || 'application/octet-stream';
       
       const uploadItem = {
-        id: uuidv4(),
+        id: this.uuidv4(),
         file,
         fileName: file.name,
         fileSize: file.size,
