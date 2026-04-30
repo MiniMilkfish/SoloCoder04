@@ -30,13 +30,17 @@ const ALLOWED_TYPES = [
 ];
 
 app.use(cors({
-  origin: '*',
+  origin: true,
+  credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+const FRONTEND_PATH = path.join(__dirname, '..', 'frontend');
+app.use(express.static(FRONTEND_PATH));
 
 fs.ensureDirSync(STORAGE_PATH);
 fs.ensureDirSync(TEMP_PATH);
@@ -50,7 +54,7 @@ let users = [
 let logs = [];
 
 const authMiddleware = (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
+  const token = req.headers.authorization?.split(' ')[1] || req.query.token;
   if (!token) {
     return res.status(401).json({ error: '未授权访问' });
   }
@@ -749,7 +753,13 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`文件管理系统后端服务启动于 http://localhost:${PORT}`);
-  console.log(`默认管理员账号: admin / admin123`);
-  console.log(`普通用户账号: user / user123`);
+  console.log(`========================================`);
+  console.log(`  文件管理系统启动成功!`);
+  console.log(`========================================`);
+  console.log(`  访问地址: http://localhost:${PORT}`);
+  console.log(`  API 地址: http://localhost:${PORT}/api`);
+  console.log(`----------------------------------------`);
+  console.log(`  默认管理员账号: admin / admin123`);
+  console.log(`  普通用户账号: user / user123`);
+  console.log(`========================================`);
 });

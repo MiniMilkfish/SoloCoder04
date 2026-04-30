@@ -27,8 +27,7 @@ const API = {
     try {
       const response = await fetch(`${CONFIG.API_BASE_URL}${url}`, {
         ...options,
-        headers,
-        credentials: 'include'
+        headers
       });
       
       const contentType = response.headers.get('content-type');
