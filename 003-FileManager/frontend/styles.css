@@ -381,6 +381,27 @@ body {
   background: #f9f5ff;
 }
 
+.file-item.dragging {
+  opacity: 0.5;
+  transform: scale(0.95);
+}
+
+.file-item.drag-over {
+  border-color: #667eea;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.5);
+}
+
+.file-item.drag-over-folder {
+  border-color: #52c41a;
+  background: #f6ffed;
+  box-shadow: 0 0 0 2px rgba(82, 196, 26, 0.5);
+  transform: scale(1.02);
+}
+
+.file-list {
+  min-height: 200px;
+}
+
 .file-item .checkbox {
   position: absolute;
   top: 8px;

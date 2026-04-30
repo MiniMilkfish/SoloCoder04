@@ -282,7 +282,10 @@ class FileManagerApp {
     container.innerHTML = files.map(file => {
       const isSelected = this.selectedItems.has(file.path);
       return `
-        <div class="file-item ${isSelected ? 'selected' : ''}" data-path="${file.path}" data-type="${file.type}">
+        <div class="file-item ${isSelected ? 'selected' : ''}" 
+             data-path="${file.path}" 
+             data-type="${file.type}"
+             draggable="true">
           <div class="checkbox ${isSelected ? 'checked' : ''}"></div>
           <div class="actions">
             <button class="action-btn" data-action="rename" data-path="${file.path}" title="重命名">✏️</button>
@@ -306,6 +309,8 @@ class FileManagerApp {
   
   bindFileItemEvents() {
     const items = document.querySelectorAll('.file-item');
+    const fileList = document.getElementById('file-list');
+    let dragSource = null;
     
     items.forEach(item => {
       const checkbox = item.querySelector('.checkbox');
@@ -347,7 +352,153 @@ class FileManagerApp {
           this.handleAction(action, path);
         });
       });
+      
+      item.addEventListener('dragstart', (e) => {
+        e.stopPropagation();
+        dragSource = item;
+        item.classList.add('dragging');
+        
+        let dragPaths;
+        if (this.selectedItems.has(item.dataset.path)) {
+          dragPaths = Array.from(this.selectedItems);
+        } else {
+          dragPaths = [item.dataset.path];
+        }
+        
+        e.dataTransfer.setData('text/plain', JSON.stringify(dragPaths));
+        e.dataTransfer.effectAllowed = 'move';
+      });
+      
+      item.addEventListener('dragend', (e) => {
+        e.stopPropagation();
+        item.classList.remove('dragging');
+        document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+        document.querySelectorAll('.drag-over-folder').forEach(el => el.classList.remove('drag-over-folder'));
+        dragSource = null;
+      });
+      
+      item.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        if (dragSource === item) return;
+        
+        const itemType = item.dataset.type;
+        const itemPath = item.dataset.path;
+        
+        const dragData = e.dataTransfer.getData('text/plain');
+        let dragPaths = [];
+        try {
+          dragPaths = JSON.parse(dragData);
+        } catch (e) {}
+        
+        const isDescendant = dragPaths.some(target => 
+          itemPath.startsWith(target + '/') || itemPath === target
+        );
+        
+        if (isDescendant) {
+          e.dataTransfer.dropEffect = 'none';
+          return;
+        }
+        
+        e.dataTransfer.dropEffect = 'move';
+        
+        if (itemType === 'folder') {
+          item.classList.add('drag-over-folder');
+        } else {
+          item.classList.add('drag-over');
+        }
+      });
+      
+      item.addEventListener('dragleave', (e) => {
+        e.stopPropagation();
+        item.classList.remove('drag-over', 'drag-over-folder');
+      });
+      
+      item.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        item.classList.remove('drag-over', 'drag-over-folder');
+        
+        if (dragSource === item) return;
+        
+        const dragData = e.dataTransfer.getData('text/plain');
+        let dragPaths = [];
+        try {
+          dragPaths = JSON.parse(dragData);
+        } catch (e) {
+          return;
+        }
+        
+        const targetType = item.dataset.type;
+        const targetPath = item.dataset.path;
+        
+        if (dragPaths.length === 0) return;
+        
+        const isDescendant = dragPaths.some(dragPath => 
+          targetPath.startsWith(dragPath + '/') || targetPath === dragPath
+        );
+        
+        if (isDescendant) {
+          Utils.showToast('不能移动到目标文件夹自身或其子文件夹', 'warning');
+          return;
+        }
+        
+        if (targetType === 'folder') {
+          this.moveTargets = dragPaths;
+          this.moveTargetPath = targetPath;
+          await this.moveItems();
+        } else {
+          const parentDir = targetPath.substring(0, targetPath.lastIndexOf('/')) || '/';
+          this.moveTargets = dragPaths;
+          this.moveTargetPath = parentDir;
+          await this.moveItems();
+        }
+      });
     });
+    
+    if (fileList) {
+      fileList.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+      });
+      
+      fileList.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        
+        const files = e.dataTransfer.files;
+        if (files && files.length > 0) {
+          this.handleFileUpload(files);
+          return;
+        }
+        
+        const dragData = e.dataTransfer.getData('text/plain');
+        let dragPaths = [];
+        try {
+          dragPaths = JSON.parse(dragData);
+        } catch (e) {
+          return;
+        }
+        
+        if (dragPaths.length > 0) {
+          const parentDir = this.currentPath;
+          
+          const inSameDir = dragPaths.every(target => {
+            const itemParentDir = target.substring(0, target.lastIndexOf('/')) || '/';
+            return itemParentDir === parentDir;
+          });
+          
+          if (inSameDir) {
+            return;
+          }
+          
+          this.moveTargets = dragPaths;
+          this.moveTargetPath = parentDir;
+          await this.moveItems();
+        }
+      });
+    }
   }
   
   handleAction(action, path) {
@@ -534,20 +685,67 @@ class FileManagerApp {
     }).join('');
     
     container.querySelectorAll('.folder-item').forEach(item => {
-      item.addEventListener('dblclick', () => {
-        this.moveTargetPath = item.dataset.path;
+      item.addEventListener('dblclick', (e) => {
+        e.stopPropagation();
+        const folderPath = item.dataset.path;
+        const isDescendant = this.moveTargets.some(target => 
+          folderPath.startsWith(target + '/') || folderPath === target
+        );
+        if (isDescendant) {
+          Utils.showToast('不能进入要移动的文件夹', 'warning');
+          return;
+        }
+        this.moveTargetPath = folderPath;
         this.loadMoveFolderList();
       });
       
-      item.addEventListener('click', () => {
+      item.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const folderPath = item.dataset.path;
+        
+        const isDescendant = this.moveTargets.some(target => 
+          folderPath.startsWith(target + '/') || folderPath === target
+        );
+        if (isDescendant) {
+          Utils.showToast('不能移动到目标文件夹自身或其子文件夹', 'warning');
+          return;
+        }
+        
         container.querySelectorAll('.folder-item').forEach(i => i.classList.remove('selected'));
         item.classList.add('selected');
+        this.moveTargetPath = folderPath;
       });
     });
   }
   
   async moveItems() {
     if (this.moveTargets.length === 0) return;
+    
+    const invalidTargets = this.moveTargets.filter(target => {
+      if (target === this.moveTargetPath) {
+        return true;
+      }
+      if (this.moveTargetPath.startsWith(target + '/')) {
+        return true;
+      }
+      return false;
+    });
+    
+    if (invalidTargets.length > 0) {
+      Utils.showToast('不能将文件夹移动到自身或其子文件夹', 'warning');
+      return;
+    }
+    
+    const currentDir = this.currentPath;
+    const inSameDir = this.moveTargets.every(target => {
+      const parentDir = target.substring(0, target.lastIndexOf('/')) || '/';
+      return parentDir === this.moveTargetPath;
+    });
+    
+    if (inSameDir && this.moveTargets.length > 0) {
+      Utils.showToast('文件已在目标文件夹中', 'info');
+      return;
+    }
     
     try {
       await API.moveFiles(this.moveTargets, this.moveTargetPath);
